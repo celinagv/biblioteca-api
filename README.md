@@ -154,43 +154,18 @@ El workflow `.github/workflows/ci.yml` ejecuta las cuatro verificaciones en GitH
 ## Organización del código
 
 ```
-main.py              # crea la aplicación y registra los routers
-config.py            # configuración (variables BIBLIOTECA_*)
-database.py          # conexión a la base y sesiones
-dependencies.py      # dependencias de FastAPI: sesión, servicios, paginación y "hoy"
-exceptions.py        # errores de negocio
-api/
-  routers/           # endpoints HTTP
-  schemas/           # JSON de entrada y de salida
-  error_handlers.py  # traducción de errores de negocio a códigos HTTP
-models/              # tablas
-repositories/        # consultas a la base
-services/            # reglas de negocio
-scripts/             # datos de ejemplo
+main.py              
+config.py            
+database.py          
+dependencies.py      
+exceptions.py        
+  routers/           
+  schemas/           
+  error_handlers.py  
+models/              
+repositories/        
+services/            
+scripts/             
 tests/
 ```
 
-## Decisiones de diseño
-
-- **Arquitectura en capas:** `router` → `service` (reglas) → `repository` (consultas) → base de
-  datos. Los services lanzan errores de negocio (`NotFoundError` → 404, `ForbiddenError` → 403,
-  `ConflictError` → 409) y un único manejador los transforma en respuestas HTTP.
-- **Control de stock:** el descuento se ejecuta en una sola sentencia condicionada (`stock > 0`)
-  dentro de la misma transacción que el préstamo, de modo que dos pedidos simultáneos no puedan
-  llevarse la última copia. La devolución usa una condición análoga para no reponer stock dos veces.
-- **Integridad en la base:** SQLite se configura con claves foráneas activadas y una restricción
-  `stock >= 0`; ante cualquier violación se responde `409` y no un error interno.
-- **Fecha de "hoy" inyectable:** permite probar vencimientos y multas sin depender del calendario.
-- **Multa:** se calcula con fechas (días de calendario) y con valores configurables.
-
-## Limitaciones conocidas
-
-- **Sin autenticación:** cualquier cliente puede usar todos los endpoints; los roles de
-  bibliotecario y socio quedaron fuera del alcance.
-- **Tope de préstamos por socio:** se controla antes de insertar, por lo que dos pedidos
-  simultáneos del mismo socio podrían superarlo. El stock, en cambio, sí está protegido.
-- **Multa:** se calcula al registrar la devolución; un préstamo vencido que sigue sin devolverse
-  todavía no muestra multa acumulada.
-- **Base de datos:** SQLite está pensada para desarrollo y prácticas. Las tablas se crean al
-  iniciar, pero no hay migraciones: para cambiar el esquema de una base existente haría falta una
-  herramienta como Alembic, y en producción convendría un servidor como PostgreSQL.
