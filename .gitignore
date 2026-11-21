@@ -1,0 +1,19 @@
+# Entorno virtual
+.venv*/
+venv/
+
+# Cachés y reportes
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Base de datos local y configuración privada
+*.db
+.env
+
+# Editores
+.idea/
+.vscode/
